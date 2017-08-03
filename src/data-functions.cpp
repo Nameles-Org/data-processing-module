@@ -58,7 +58,7 @@ void queue_consumer(MessagesQueue *const requests_queue,
 			pgres = PQexec(pgconn, buffer.c_str());
 			retries = 0;
 			do{
-				if(!pgres){
+				if(pgres){
 					PQclear(pgres);
 					pgres = NULL;
 				}
@@ -73,7 +73,7 @@ void queue_consumer(MessagesQueue *const requests_queue,
 						continue;
 					}
 				}
-				if(!pgres){
+				if(pgres){
 					PQclear(pgres);
 					pgres = NULL;
 				}
@@ -85,7 +85,7 @@ void queue_consumer(MessagesQueue *const requests_queue,
 				cout << "Can't copy data to postgreSQL" << endl;
 				exit(-1);
 			}
-			if(!pgres){
+			if(pgres){
 				PQclear(pgres);
 				pgres = NULL;
 			}
