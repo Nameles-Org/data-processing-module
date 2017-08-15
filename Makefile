@@ -1,9 +1,10 @@
 CC=gcc
 CXX=g++
 RM=rm -f
-CXXFLAGS=-Wall -std=c++14 -I./src -I./include $(shell pkg-config --cflags libpq)
+LIBS=libpq libpqxx python3 libzmq
+CXXFLAGS=-Wall -std=c++14 -I./src -I./include $(shell pkg-config --cflags libpq python3)
 LDFLAGS=-L./lib/
-LDLIBS=-lm -lrt -lgflags -lpqxx -lboost_system -lpthread -lboost_thread -lzmqpp -lpq -lzmq
+LDLIBS=-lm -lrt -lgflags -lboost_system -lpthread -lboost_thread -lzmqpp $(shell pkg-config --libs $(LIBS))
 
 BIN=data-processing
 
@@ -14,7 +15,7 @@ OBJDIR=obj/
 vpath %.cpp $(SRCDIR)
 vpath %.h $(SRCDIR)
 
-SRC=data-functions.cpp
+SRC=data-functions.cpp data-processing.cpp
 OBJS = $(addsuffix .o,$(basename $(SRC)))
 
 
@@ -22,11 +23,11 @@ all: $(BIN)
 
 tests: $(TESTSBIN)
 
-test-data-processing: src/tests/test-data-processing.cpp $(addprefix $(OBJDIR),$(OBJS))
+test-data-processing: $(addprefix $(OBJDIR),$(OBJS))
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 
-$(BIN): data-processing.cpp $(addprefix $(OBJDIR),$(OBJS))
+$(BIN): $(addprefix $(OBJDIR),$(OBJS))
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 $(OBJDIR)%.o: %.cpp | $(OBJDIR)
