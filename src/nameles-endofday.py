@@ -42,8 +42,9 @@ __status__ = "Development"
 
 POSTGRES_USER = 'nameles'  # getuser()
 POSTGRES_DB = 'nameles'
-with open('/usr/share/nameles/nameles-port') as port_file:
-    POSTGRES_PORT = port_file.readline().rstrip()
+POSTGRES_PORT = 5430
+# with open('/usr/share/nameles/nameles-port') as port_file:
+#     POSTGRES_PORT = port_file.readline().rstrip()
 
 
 def main(args):

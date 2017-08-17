@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
+"""Script for computing the statistical thresholds of the confidence score."""
+
+
 import psycopg2
 import argparse
-from getpass import getuser
 
 __author__ = "Antonio Pastor"
 __copyright__ = "Copyright 2016, Antonio Pastor"
@@ -14,17 +17,25 @@ __maintainer__ = "Antonio Pastor"
 __email__ = "anpastor@it.uc3m.es"
 __status__ = "Development"
 
-
-POSTGRES_USER = getuser()
+POSTGRESQL_PORT = 5430
+POSTGRES_USER = 'nameles'
 POSTGRES_DB = 'nameles'
 
-def main(log_day,min_requests):
 
+def main(day, min_requests):
+    """
+    Main function of the script.
+
+    Compute the statistical thresholds for the given day considering
+    in the population only referrers with at least min_requests in that day
+    """
     conn = psycopg2.connect("dbname=%s user=%s" % (POSTGRES_DB, POSTGRES_USER))
     cur = conn.cursor()
-    cur.execute("select percentile_cont(array[1,0.75,0.50,0.25]) within group (order by score_{0}) from stats.referrer where total_{0}>={1};".format(log_day,min_requests))
+    cur.execute(("select percentile_cont(array[1,0.75,0.50,0.25]) within "
+                 "group (order by score_{0}) from stats.referrer where "
+                 "total_{0}>={1};").format(day, min_requests))
     conn.commit()
-    (perc100,perc75,perc50,perc25) = cur.fetchone()[0]
+    (perc100, perc75, perc50, perc25) = cur.fetchone()[0]
     IQR = perc75-perc25
     UHR = perc100-perc50
     moderate_confidence = perc50 - UHR
@@ -36,9 +47,14 @@ def main(log_day,min_requests):
     print("Low Confidence:\t\t", low_confidence)
     print("No Confidence:\t", no_confidence)
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Compute statistical thresholds for the referrer's score")
-    parser.add_argument("log_day", help="Day for which to compute the thresholds", type=str)
-    parser.add_argument("--minimum", "-m", help="Minimum ad-requests to include the referrer in the population", type=int, default=1000)
+    parser = argparse.ArgumentParser(
+        description="Compute statistical thresholds for the referrer's score")
+    parser.add_argument(
+        "day", help="Day for which to compute the thresholds", type=str)
+    parser.add_argument("--minimum", "-m",
+                        help=("Minimum ad-requests to include the referrer "
+                              "in the population"), type=int, default=1000)
     args = parser.parse_args()
-    main(args.log_day,args.minimum)
+    main(args.day, args.minimum)

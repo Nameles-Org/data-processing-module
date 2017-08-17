@@ -1,3 +1,5 @@
 #!/bin/bash
-read -r PORT < /usr/share/nameles/nameles-port
+
+# read -r PORT < /usr/share/nameles/nameles-port
+PORT=5430
 psql -p $PORT -U nameles -d nameles
