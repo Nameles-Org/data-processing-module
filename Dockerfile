@@ -6,7 +6,7 @@ RUN apt-get install -y postgresql postgresql-server-dev-all libpq-dev libpqxx-de
 RUN pg_lsclusters | tail +2 | cut -f1,2 -d' ' | while read x; do pg_dropcluster --stop $x; done
 
 RUN apt-get install -y libgflags-dev libboost-system-dev libboost-thread-dev
-RUN apt-get install -y sudo python3-psycopg2
+RUN apt-get install -y sudo bc python3-psycopg2
 
 WORKDIR /Nameles-streaming
 
@@ -17,6 +17,7 @@ RUN make
 
 #EXPOSE $RCV_PORT
 
-ENTRYPOINT ./scripts/pgsql_config.sh && /Nameles-streaming/data-processing -rcvport $RCV_PORT -notify_sockets $NOTIFY_SOCKETS \
-    -dbIP $DB_IP -dbUSER $DB_USER -dbPWD $DB_PWD -dbNAME $DB_NAME -nWorkers $NWORKERS \
+ENTRYPOINT sh /Nameles-streaming/src/pgsql_config.sh && /Nameles-streaming/data-processing \
+    -rcvport $RCV_PORT -notify_sockets $NOTIFY_SOCKETS -dbIP $DB_IP \
+    -dbUSER $DB_USER -dbPWD $DB_PWD -dbNAME $DB_NAME -nWorkers $NWORKERS \
     -max_msgs $MAX_MSGS -python_script_name $PYTHON_SCRIPT_NAME

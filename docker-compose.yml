@@ -1,0 +1,17 @@
+version: "3"
+services:
+  nameles-streaming:
+    image: apastor/nameles-streaming
+    networks:
+      - default
+    restart: "no"
+    environment:
+      - RCV_PORT=58510
+      - NOTIFY_SOCKETS=tcp://127.0.0.1:58520
+      - DB_IP=127.0.0.1
+      - DB_USER=nameles
+      - DB_PWD=""
+      - DB_NAME=nameles
+      - NWORKERS=2
+      - MAX_MSGS=1000000
+      - PYTHON_SCRIPT_NAME=/nameles-streaming/src/nameles-endofday.py

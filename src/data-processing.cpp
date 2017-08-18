@@ -44,10 +44,11 @@ DEFINE_string(dbIP, "127.0.0.1", "IP address of the database");
 DEFINE_string(dbPWD, "password", "password of the database");
 DEFINE_string(dbUSER, "username", "database user");
 DEFINE_string(dbNAME, "nameles", "database name");
+DEFINE_string(notify_sockets, "none", "String with space separated sockets to notify score updates [tcp://ip:port]");
+DEFINE_string(python_script_name, "./scripts/nameles-endofday.py", "Relative or absolute path to python script for computing scores at the end of the day");
 DEFINE_int32(nWorkers, 4, "Number of workers");
-DEFINE_int32(rcvport, 58510, "\"Receive from\" port");
-//DEFINE_int32(sndport, 58505, "\"Send to\" port");
 DEFINE_int32(max_msgs, 1e6, "Maximum number of messages per thread per database serialization");
+DEFINE_int32(rcvport, 58510, "\"Receive in\" port");
 
 void SIGINT_handler(int s){
            printf("Caught signal %d\n",s);
@@ -55,16 +56,21 @@ void SIGINT_handler(int s){
 }
 
 
+
 int main(int argc, char *argv[]) {
 	google::ParseCommandLineFlags(&argc, &argv, true);
 
 	string receiveFromSocket = "tcp://*:" + std::to_string(FLAGS_rcvport);
 	string dbConnect = "dbname=" + FLAGS_dbNAME + " user="+ FLAGS_dbUSER +
-											" host="+ FLAGS_dbIP + " password=" + FLAGS_dbPWD;
+											" host="+ FLAGS_dbIP + " port=5430 password=" + FLAGS_dbPWD;
 
 	MessagesQueue requests_queue;
+	std::unique_ptr<boost::thread> notifyThread;
 	receiverThread = boost::thread(receive_msgs, &requests_queue, receiveFromSocket);
 
+	if (FLAGS_notify_sockets != "none"){
+		notifyThread = std::unique_ptr<boost::thread>(new boost::thread(compute_scores, argv[0], FLAGS_python_script_name, FLAGS_notify_sockets));
+	}
 	boost::thread_group workers;
 	for( int x=0; x<FLAGS_nWorkers; ++x ) {
     workers.add_thread(new boost::thread(queue_consumer, &requests_queue,
@@ -79,6 +85,10 @@ int main(int argc, char *argv[]) {
 	sigaction(SIGINT, &sigIntHandler, NULL);
 	receiverThread.join();
 	workers.interrupt_all();
+	if (FLAGS_notify_sockets != "none"){
+		notifyThread->interrupt();
+		notifyThread->join();
+	}
 	workers.join_all();
-  exit(0);
+  return 0;
 }

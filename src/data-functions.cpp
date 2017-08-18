@@ -15,6 +15,22 @@
  *
  */
 
+#include <Python.h>
+#include <iomanip>
+#include <ctime>
+#include <ratio>
+#include <chrono>
+#include <cwchar>
+#include <sstream>
+#include <cstdio>
+#include <cstdlib>
+#include <unistd.h>
+#include <chrono>
+#include <utility>
+#include <boost/thread.hpp>
+#include <libpq-fe.h>
+#include <zmqpp/zmqpp.hpp>
+
 #include "data-functions.h"
 
 void queue_consumer(MessagesQueue *const requests_queue,
@@ -24,9 +40,6 @@ void queue_consumer(MessagesQueue *const requests_queue,
 	string buffer;
 	int n_msgs = 0;
 
-	// pqxx::connection c(dbConnect);
-	// pqxx::work work(c);
-
 	while( ! boost::this_thread::interruption_requested() ){
 		ref_ip_ptr = std::shared_ptr<strings_pair>(requests_queue->pop_front_block(1));
 		if (ref_ip_ptr){
@@ -35,7 +48,7 @@ void queue_consumer(MessagesQueue *const requests_queue,
 		}
 		if(n_msgs>max_msgs || boost::this_thread::interruption_requested()){
 			auto t = std::time(nullptr);
-			auto tm = *std::localtime(&t);
+			auto tm = *std::localtime(&t);  // Always get the struct from localtime (copy the value). The pointer just gives a local buffer.
 
 			std::ostringstream date_oss;
 			date_oss << std::put_time(&tm, "%C%m%d");
@@ -136,4 +149,45 @@ void receive_msgs(MessagesQueue *const requests_queue,
 
 	receiver.close();
 	context.terminate();
+}
+
+void compute_scores(const char* prog_name, const string& python_script_name, const string& notify_sockets){
+
+	std::string str_prog_name(prog_name);
+  std::wstring w_prog_name(str_prog_name.begin(),str_prog_name.end());
+	wchar_t wc_prog_name[w_prog_name.length()+1];
+	std::wcscpy(wc_prog_name, w_prog_name.c_str());
+
+	std::wstring w_notify_sockets(notify_sockets.begin(), notify_sockets.end());
+	wchar_t wc_notify_sockets[w_notify_sockets.length()+1];
+	std::wcscpy(wc_notify_sockets, w_notify_sockets.c_str());
+
+	while( ! boost::this_thread::interruption_requested() ){
+		auto t = std::time(nullptr);
+		auto tm = *std::localtime(&t);  // Always get the struct from localtime (copy the value). The pointer just gives a local buffer.
+		wchar_t working_date[7];
+		wcsftime(working_date, 7, L"%C%m%d\0", &tm);
+		tm.tm_mday += 1;
+		tm.tm_isdst = -1;
+		tm.tm_hour = 0;
+		tm.tm_min = 0;
+		tm.tm_sec = 0;
+		std::this_thread::sleep_until(std::chrono::system_clock::from_time_t(std::mktime(&tm)));
+
+		  wchar_t wargv0[] = L"python_hello_world.py";
+		  wchar_t wargv1[] = L"--date";
+			// wargv2 is working_date
+		  wchar_t wargv3[] = L"--socket";
+		  // wargv4 is wc_notify_sockets
+		  wchar_t *wargv[] = {&wargv0[0], &wargv1[0], &working_date[0], &wargv3[0], &wc_notify_sockets[0]};
+
+		  Py_SetProgramName(wc_prog_name);  // optional but recommended
+
+		  Py_Initialize();
+		  PySys_SetArgv(2, &wargv[0]);
+		  FILE *file = fopen(python_script_name.c_str(),"r");
+		  PyRun_SimpleFile(file, python_script_name.c_str());
+		  fclose(file);
+		  Py_Finalize();
+	}
 }

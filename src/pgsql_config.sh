@@ -2,6 +2,7 @@
 
 set -e
 
+PORT=5430
 NAMELES_DIR=$(cd "$(dirname "$(readlink -f $0)")/../" && pwd)
 PGSQL_PORT=5430
 PGSQL_MAJOR=$( ls /usr/lib/postgresql/ | sort -r | head -1 )

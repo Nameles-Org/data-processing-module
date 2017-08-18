@@ -18,27 +18,12 @@
 #ifndef _NAMELES_DATA_FUNCTIONS_
 #define _NAMELES_DATA_FUNCTIONS_
 
-#include <string>
 #include <iostream>
-#include <iomanip>
-#include <ctime>
-#include <sstream>
-#include <cstdio>
-#include <cstdlib>
-#include <unistd.h>
-#include <utility>
-#include <libpq-fe.h>
-//#include <pqxx/pqxx>
-#include <zmqpp/zmqpp.hpp>
-
 #include <queue>
+#include <memory>
 #include <mutex>
 #include <condition_variable>
-#include <chrono>
-#include <memory>
 #include <unordered_map>
-#include <boost/thread.hpp>
-
 
 using std::cout;
 using std::endl;
@@ -99,5 +84,9 @@ void queue_consumer(MessagesQueue *const requests_queue,
 										const string& dbConnect, const int max_msgs);
 void receive_msgs(MessagesQueue *const requests_queue,
 									const string& receiveFromSocket);
+
+void compute_scores(const char* prog_name, const string& python_script_name,
+                    const string& notify_sockets);
+
 
 #endif // _NAMELES_DATA_FUNCTIONS_
