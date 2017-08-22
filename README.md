@@ -6,7 +6,11 @@
 
 ### The complete system in the same compose
 
-sudo docker-compose -f nameles-docker-compose.yml up --force-recreate
+For running the complete nameles system from the same `docker-compose.yml` file.
+Use as a template the `nameles-docker-compose.yml` file of the dsp-emulator repository.
+```bash
+sudo docker-compose -f nameles-docker-compose.yml up
+```
 
 ## Each container from different compose files
 
