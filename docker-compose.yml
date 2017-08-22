@@ -3,15 +3,25 @@ services:
   nameles-streaming:
     image: apastor/nameles-streaming
     networks:
-      - default
+      nameles-net:
+        ipv4_address:  172.20.0.128
     restart: "no"
+    ports:
+      - "5430:5430"
+    expose:
+      - "58510"
     environment:
       - RCV_PORT=58510
-      - NOTIFY_SOCKETS=tcp://127.0.0.1:58520
+      - NOTIFY_SOCKETS=tcp://172.20.0.129:58520
       - DB_IP=127.0.0.1
       - DB_USER=nameles
       - DB_PWD=""
       - DB_NAME=nameles
       - NWORKERS=2
-      - MAX_MSGS=1000000
+      - MAX_MSGS=10
       - PYTHON_SCRIPT_NAME=/nameles-streaming/src/nameles-endofday.py
+
+
+networks:
+  nameles-net:
+    external: true

@@ -91,7 +91,7 @@ void queue_consumer(MessagesQueue *const requests_queue,
 					pgres = NULL;
 				}
 				pgres = PQgetResult(pgconn);
-				// cout << PQresStatus(PQresultStatus(pgres)) << endl;
+			  // cout << PQresStatus(PQresultStatus(pgres)) << endl;
 			} while(PQresultStatus(pgres)!=PGRES_COMMAND_OK && retries++<5);
 			if(PQresultStatus(pgres)!=PGRES_COMMAND_OK){
 				PQfinish(pgconn);
