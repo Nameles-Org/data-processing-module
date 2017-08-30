@@ -14,7 +14,7 @@ sudo docker-compose -f nameles-docker-compose.yml up
 
 ## Each container from different compose files
 
-1. Create the nameles-net network:
+1. Create the nameles-net network in docker:
   ```bash
   sudo docker network create --subnet 172.20.0.0/24 --gateway 172.20.0.1 nameles-net
   ```
@@ -34,7 +34,7 @@ sudo docker-compose -f nameles-docker-compose.yml up
   psql -h 127.0.0.1 -p 5430 -U nameles
   ```
 
-  Note that you need to have installed the postgreSQL client.
+  Note that for this last step you need to have installed the postgreSQL client.
   In Debian/Ubuntu systems you need the postgresql-client package:
   ```bash
   sudo apt-get install postgresql-client
