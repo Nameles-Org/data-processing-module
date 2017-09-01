@@ -1,6 +1,6 @@
-# Nameless-streaming
+# data-processing-module
 
-
+Module for computing the domains' Confidence Score from the bid-requests received by the [scoring-module](https://github.com/Nameles-Org/scoring-module).
 
 ## Running nameles with docker-compose
 
