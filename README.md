@@ -20,7 +20,7 @@ sudo docker-compose -f nameles-docker-compose.yml up
   ```
 
 2. Run docker-compose for the three nameles modules in the following order:
-  1. nameles-streaming
+  1. data-processing-module
   2. scoring-module
   3. dsp-emulator
 
