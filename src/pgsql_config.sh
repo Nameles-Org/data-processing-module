@@ -2,17 +2,13 @@
 
 set -e
 
-PORT=5430
 NAMELES_DIR=$(cd "$(dirname "$(readlink -f $0)")/../" && pwd)
 PGSQL_PORT=5430
 PGSQL_MAJOR=$( ls /usr/lib/postgresql/ | sort -r | head -1 )
 pg_createcluster --port $PGSQL_PORT --start $PGSQL_MAJOR nmls -- --auth-local=trust \
 	--auth-host=trust # WARNING: not secure
-echo "host    all             all             10.0.0.0/8            trust" >> /etc/postgresql/$PGSQL_MAJOR/nmls/pg_hba.conf
-echo "host    all             all             172.16.0.0/12            trust" >> /etc/postgresql/$PGSQL_MAJOR/nmls/pg_hba.conf
-echo "host    all             all             192.168.0.0/16            trust" >> /etc/postgresql/$PGSQL_MAJOR/nmls/pg_hba.conf
 
-echo $PORT > $NAMELES_DIR/nameles-port
+echo $PGSQL_PORT > $NAMELES_DIR/nameles-port
 MEMTOTAL=$(awk '/^MemTotal:/ {mem_kb=$2}; END {print mem_kb/1024/1024}' /proc/meminfo)
 CPU_COUNT=$(lscpu | awk '/^Core\(s\) per socket:/ {cores=$NF}; /^Socket\(s\):/ {sockets=$NF}; END{print cores*sockets}')
 AUTOVACUUM_WORKERS=$(( $CPU_COUNT > 5 ? $CPU_COUNT/3 : 1 ))
@@ -37,5 +33,5 @@ perl -pi -e "s/(?<=^)#?listen_addresses =?.+?(?=\$|\t)/listen_addresses = '*'/; 
 
 cp -v $NAMELES_DIR/src/pgsql/libentropy.so /usr/lib/postgresql/$PGSQL_MAJOR/lib
 pg_ctlcluster $PGSQL_MAJOR nmls restart
-sudo -u postgres psql -p $PORT -f $NAMELES_DIR/src/pgsql/create_db.sql
-sudo -u postgres psql  -p $PORT -d nameles -f $NAMELES_DIR/src/pgsql/create_functions.sql
+sudo -u postgres psql -p $PGSQL_PORT -f $NAMELES_DIR/src/pgsql/create_db.sql
+sudo -u postgres psql  -p $PGSQL_PORT -d nameles -f $NAMELES_DIR/src/pgsql/create_functions.sql
